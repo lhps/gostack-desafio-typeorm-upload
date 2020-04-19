@@ -42,7 +42,6 @@ class CreateTransactionService {
       await categoriesRepository.save(categoryNew);
       category_id = categoryNew.id;
     }
-    // console.log('Tamanho da categoria categoria - >', categoryNew);
 
     const transaction = transactionsRepository.create({
       title,

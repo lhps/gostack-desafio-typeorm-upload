@@ -1,9 +1,7 @@
-// import csv from 'csv-parse';
 import neatCsv from 'neat-csv';
 import fs from 'fs';
 import path from 'path';
 
-// import AppError from '../errors/AppError';
 import uploadConfig from '../config/upload';
 import Transaction from '../models/Transaction';
 
@@ -20,26 +18,12 @@ class ImportTransactionsService {
   async execute(fileName: string): Promise<Transaction[]> {
     const createTransaction = new CreateTransactionService();
 
-    // const csvTransactions: CreateTransactionDTO[] = [];
     const transactions: Transaction[] = [];
     const pathFile = path.join(uploadConfig.directory, fileName);
 
-    // await new Promise<CreateTransactionDTO[]>((resolve, reject) => {
-    //   fs.createReadStream(pathFile)
-    //     .pipe(csv({ delimiter: ',', columns: true, trim: true }))
-    //     .on('data', async data => {
-    //       csvTransactions.push(data);
-    //     })
-    //     .on('error', () => reject)
-    //     .on('end', () => {
-    //       resolve(csvTransactions);
-    //       fs.promises.unlink(pathFile);
-    //     });
-    // });
+    const csvFileData = await fs.promises.readFile(pathFile);
 
-    const rawData = await fs.promises.readFile(pathFile);
-
-    const csvTransactions = await neatCsv<CreateTransactionDTO>(rawData, {
+    const csvTransactions = await neatCsv<CreateTransactionDTO>(csvFileData, {
       mapHeaders: ({ header }) => header.trim(),
       mapValues: ({ value }) => value.trim(),
     });
@@ -48,6 +32,8 @@ class ImportTransactionsService {
       const transaction = await createTransaction.execute(row);
       transactions.push(transaction);
     }
+
+    await fs.promises.unlink(pathFile);
 
     return transactions;
   }
